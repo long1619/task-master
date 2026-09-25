@@ -1008,6 +1008,40 @@ body::before {
   color: var(--text-primary);
 }
 
+.btn-ai-create {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1.5px solid rgba(124, 58, 237, 0.3);
+}
+
+.btn-ai-create i {
+  transition: transform 0.2s ease;
+}
+
+.btn-ai-create:hover {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.btn-ai-create:hover i {
+  transform: scale(1.15);
+}
+
+[data-theme="dark"] .btn-ai-create {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+[data-theme="dark"] .btn-ai-create:hover {
+  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  color: #ffffff;
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--text-muted);
@@ -3394,6 +3428,18 @@ button.custom-check.checked,
   background: var(--brand-subtle);
 }
 
+.import-dropzone.has-file {
+  padding: 10px;
+  border-style: solid;
+  border-color: var(--border-subtle);
+  cursor: default;
+}
+
+.import-dropzone.has-file:hover {
+  border-color: var(--brand-primary);
+  background: var(--bg-card);
+}
+
 .drop-icon-excel {
   font-size: 2.2rem;
   color: #10b981;
@@ -4184,77 +4230,65 @@ body.dark-mode .modal-box.modal-box-danger {
 
 /* 1. Create Actions Group (Tạo việc + Voice) */
 .create-actions-group {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 10px;
   margin-top: 6px;
 }
 
-/* Cân bằng lại 2 nút: cùng chiều cao, cùng bo góc, nội dung căn giữa gọn gàng */
-.create-actions-group .btn {
+.create-actions-group .btn-primary {
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
   min-height: 44px;
   font-size: 0.85rem;
   border-radius: var(--radius-sm);
 }
 
-.create-actions-group .btn-primary {
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 14px;
-}
-
-.create-actions-group .btn-primary .hotkey-badge {
-  margin-left: 4px;
-  opacity: 0.8;
-}
-
-.btn-voice-create {
-  display: inline-flex;
+/* Nút mic gọi AI tạo việc bằng giọng nói, gắn trực tiếp vào từng ô nhập liệu */
+.btn-field-voice {
+  position: absolute;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 14px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #7c3aed;
-  background: rgba(124, 58, 237, 0.08);
-  border: 1.5px solid rgba(124, 58, 237, 0.35);
-  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+  font-size: 0.78rem;
+  transition: var(--transition);
+  z-index: 2;
 }
 
-.btn-voice-create:hover {
+.btn-field-voice:hover {
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: #ffffff;
-  border-color: transparent;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+  transform: translateY(-50%) scale(1.08);
 }
 
-.btn-voice-create:active {
-  transform: scale(0.97);
+.btn-field-voice-title {
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-.btn-voice-create i {
-  font-size: 1rem;
-  transition: transform 0.2s ease;
+.btn-field-voice-title:hover {
+  transform: translateY(-50%) scale(1.08);
 }
 
-.btn-voice-create:hover i {
-  transform: scale(1.15);
-}
-
-body.dark-mode .btn-voice-create {
-  background: rgba(139, 92, 246, 0.15);
+body.dark-mode .btn-field-voice {
+  background: rgba(139, 92, 246, 0.18);
   color: #c4b5fd;
-  border-color: rgba(139, 92, 246, 0.4);
 }
 
-body.dark-mode .btn-voice-create:hover {
+body.dark-mode .btn-field-voice:hover {
   background: linear-gradient(135deg, #7c3aed, #6366f1);
   color: #ffffff;
+}
+
+#taskTitle {
+  padding-right: 38px;
 }
 
 /* 2. Voice-to-Task Recording Modal */

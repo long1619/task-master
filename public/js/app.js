@@ -30,7 +30,6 @@ let sortBy = 'createdAt:desc';
 let searchQuery = '';
 let searchDebounceTimer = null;
 
-let selectedCreateFile = null;
 let currentViewMode = 'list';
 let draggedTodoId = null;
 
@@ -56,7 +55,6 @@ let workspaceMembersCache = new Map(); // wsId -> members array
 // Status & Nav
 const dbStatusBadge = document.getElementById('dbStatusBadge');
 const dbStatusText = document.getElementById('dbStatusText');
-const seedDemoBtn = document.getElementById('seedDemoBtn');
 
 // New Header Controls: Trash, Analytics, Notification & Logout All
 const trashCountBadge = document.getElementById('trashCountBadge');
@@ -121,13 +119,6 @@ const taskDescInput = document.getElementById('taskDescription');
 const taskStatusSelect = document.getElementById('taskStatus');
 const taskPrioritySelect = document.getElementById('taskPriority');
 const taskDueDateInput = document.getElementById('taskDueDate');
-const fileDropzone = document.getElementById('fileDropzone');
-const createFileInput = document.getElementById('createFileInput');
-const dropzoneContent = document.getElementById('dropzoneContent');
-const selectedFilePreview = document.getElementById('selectedFilePreview');
-const previewFileName = document.getElementById('previewFileName');
-const previewFileSize = document.getElementById('previewFileSize');
-const removeFileBtn = document.getElementById('removeFileBtn');
 const submitCreateBtn = document.getElementById('submitCreateBtn');
 
 // Toolbar & Feed
@@ -290,7 +281,9 @@ async function apiFetch(endpoint, options = {}) {
     clearAuthState();
     openAuthModal('login');
     showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!', 'error');
-    throw new Error('Unauthorized');
+    const sessionErr = new Error('Unauthorized');
+    sessionErr.isSessionExpired = true;
+    throw sessionErr;
   }
 
   return res;
@@ -679,12 +672,7 @@ function renderTodos() {
           <i class="fa-solid fa-inbox"></i>
         </div>
         <h4 class="empty-headline">Chưa có công việc nào!</h4>
-        <p class="empty-guide">${searchQuery ? 'Không tìm thấy kết quả phù hợp với từ khóa.' : 'Hãy tạo công việc mới ở khung bên trái hoặc bấm nút dưới để nạp 4 việc mẫu.'}</p>
-        ${!searchQuery ? `
-          <button class="btn btn-seed" onclick="handleSeedDemoData()">
-            <i class="fa-solid fa-seedling"></i> Tạo ngay 4 công việc mẫu
-          </button>
-        ` : ''}
+        <p class="empty-guide">${searchQuery ? 'Không tìm thấy kết quả phù hợp với từ khóa.' : 'Hãy tạo công việc mới ở khung bên trái.'}</p>
       </div>
     `;
     return;
@@ -1159,7 +1147,9 @@ function initKanbanSortable() {
         } catch (err) {
           todo.status = oldStatus;
           renderKanbanBoard();
-          showToast('Lỗi mạng khi cập nhật trạng thái!', 'error');
+          if (!err.isSessionExpired) {
+            showToast('Lỗi mạng khi cập nhật trạng thái!', 'error');
+          }
         }
       }
     });
@@ -1205,8 +1195,10 @@ async function handleTriggerReminderEmail() {
       showToast(result.message || 'Lỗi gửi email Bản tin AI!', 'error');
     }
   } catch (err) {
-    console.error('Email error:', err);
-    showToast('Lỗi kết nối khi gửi email Bản tin AI!', 'error');
+    if (!err.isSessionExpired) {
+      console.error('Email error:', err);
+      showToast('Lỗi kết nối khi gửi email Bản tin AI!', 'error');
+    }
   } finally {
     triggerReminderEmailBtn.disabled = false;
     triggerReminderEmailBtn.innerHTML = originalHtml;
@@ -1443,8 +1435,11 @@ function setupEventListeners() {
   }
 
   // Next-Level AI: Voice-to-Task & Voice Chat Triggers
-  const voiceToTaskBtn = document.getElementById('voiceToTaskBtn');
-  if (voiceToTaskBtn) voiceToTaskBtn.addEventListener('click', () => startVoiceRecognition('task'));
+  const aiCreateTaskBtn = document.getElementById('aiCreateTaskBtn');
+  if (aiCreateTaskBtn) aiCreateTaskBtn.addEventListener('click', () => startVoiceRecognition('task'));
+
+  const voiceTitleBtn = document.getElementById('voiceTitleBtn');
+  if (voiceTitleBtn) voiceTitleBtn.addEventListener('click', () => startVoiceRecognition('task'));
 
   const aiVoiceChatBtn = document.getElementById('aiVoiceChatBtn');
   if (aiVoiceChatBtn) aiVoiceChatBtn.addEventListener('click', () => startVoiceRecognition('chat'));
@@ -1479,37 +1474,6 @@ function setupEventListeners() {
         e.preventDefault();
         handleAddSubtaskQuick();
       }
-    });
-  }
-
-  // File Dropzone in Create Form
-  if (fileDropzone) {
-    fileDropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      fileDropzone.classList.add('dragover');
-    });
-    fileDropzone.addEventListener('dragleave', () => fileDropzone.classList.remove('dragover'));
-    fileDropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      fileDropzone.classList.remove('dragover');
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleSelectCreateFile(e.dataTransfer.files[0]);
-      }
-    });
-  }
-
-  if (createFileInput) {
-    createFileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) {
-        handleSelectCreateFile(e.target.files[0]);
-      }
-    });
-  }
-
-  if (removeFileBtn) {
-    removeFileBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      clearCreateFile();
     });
   }
 
@@ -1579,10 +1543,6 @@ function setupEventListeners() {
       fetchTodos();
     });
   }
-
-  // Seed Data Button
-  if (seedDemoBtn) seedDemoBtn.addEventListener('click', handleSeedDemoData);
-
 
   // Edit Modal
   if (closeEditModalBtn) closeEditModalBtn.addEventListener('click', closeEditModal);
@@ -1923,26 +1883,6 @@ function setupEventListeners() {
   }
 }
 
-// File dropzone helpers
-function handleSelectCreateFile(file) {
-  if (file.size > 5 * 1024 * 1024) {
-    showToast('Tệp quá lớn! Giới hạn tối đa là 5MB.', 'error');
-    return;
-  }
-  selectedCreateFile = file;
-  previewFileName.textContent = file.name;
-  previewFileSize.textContent = `(${formatFileSize(file.size)})`;
-  dropzoneContent.style.display = 'none';
-  selectedFilePreview.style.display = 'flex';
-}
-
-function clearCreateFile() {
-  selectedCreateFile = null;
-  createFileInput.value = '';
-  dropzoneContent.style.display = 'flex';
-  selectedFilePreview.style.display = 'none';
-}
-
 // ==================== CRUD OPERATIONS ====================
 async function handleCreateTask(e) {
   if (e) e.preventDefault();
@@ -1990,22 +1930,9 @@ async function handleCreateTask(e) {
     const result = await res.json();
 
     if (res.ok && result.success) {
-      const newTodo = result.data;
-
-      // Nếu có chọn file đính kèm, upload file ngay
-      if (selectedCreateFile) {
-        const formData = new FormData();
-        formData.append('file', selectedCreateFile);
-        await apiFetch(`/todos/${newTodo.id}/attachments`, {
-          method: 'POST',
-          body: formData
-        });
-      }
-
       // Reset form
       createTaskForm.reset();
       charCounter.textContent = '0/100';
-      clearCreateFile();
       taskStatusSelect.value = 'pending';
       taskPrioritySelect.value = 'medium';
       if (wsSelect) wsSelect.value = '';
@@ -2022,13 +1949,12 @@ async function handleCreateTask(e) {
       showToast(msg, 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi gửi dữ liệu lên máy chủ!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi gửi dữ liệu lên máy chủ!', 'error');
+    }
   } finally {
     submitCreateBtn.disabled = false;
-    submitCreateBtn.innerHTML = `
-      <span class="btn-text"><i class="fa-solid fa-plus"></i> Tạo công việc ngay</span>
-      <span class="hotkey-badge">Ctrl + ↵</span>
-    `;
+    submitCreateBtn.innerHTML = 'Tạo việc ngay';
   }
 }
 
@@ -2118,7 +2044,9 @@ async function toggleTaskComplete(arg1, arg2, arg3) {
     if (card) {
       card.classList.toggle('is-done', curStatus === 'completed');
     }
-    showToast('Lỗi mạng khi cập nhật trạng thái công việc!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi cập nhật trạng thái công việc!', 'error');
+    }
   } finally {
     pendingCompleteSet.delete(todoId);
   }
@@ -2285,7 +2213,9 @@ async function handleSaveEdit(e) {
       showToast(result.message || 'Cập nhật thất bại!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi lưu chỉnh sửa', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi lưu chỉnh sửa', 'error');
+    }
   }
 }
 
@@ -2362,7 +2292,9 @@ async function handleDeleteTask(id, title) {
       showToast(data.message || 'Không thể xóa công việc!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi xóa công việc', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi xóa công việc', 'error');
+    }
   }
 }
 
@@ -2479,7 +2411,9 @@ async function openTrashModal() {
       trashListContainer.innerHTML = `<div class="trash-empty-state"><p>${data.message || 'Lỗi khi tải thùng rác'}</p></div>`;
     }
   } catch (err) {
-    trashListContainer.innerHTML = `<div class="trash-empty-state"><p>Lỗi kết nối khi tải thùng rác</p></div>`;
+    if (!err.isSessionExpired) {
+      trashListContainer.innerHTML = `<div class="trash-empty-state"><p>Lỗi kết nối khi tải thùng rác</p></div>`;
+    }
   }
 }
 
@@ -2565,7 +2499,9 @@ async function handleRestoreTask(id, fromUndo = false) {
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>Khôi phục</span>';
     }
-    showToast('Lỗi kết nối khi khôi phục công việc', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi kết nối khi khôi phục công việc', 'error');
+    }
   }
 }
 
@@ -2640,7 +2576,9 @@ async function executePermanentDelete(id) {
       showToast(result.message || 'Xóa vĩnh viễn thất bại!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi kết nối khi xóa vĩnh viễn', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi kết nối khi xóa vĩnh viễn', 'error');
+    }
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
@@ -2708,7 +2646,9 @@ async function executeEmptyTrash() {
       showToast(result.message || 'Không thể dọn thùng rác', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi dọn thùng rác', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi dọn thùng rác', 'error');
+    }
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
@@ -2752,7 +2692,9 @@ async function openAnalyticsModal() {
       showToast(result.message || 'Lỗi khi tải dữ liệu báo cáo!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi kết nối khi tải số liệu phân tích!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi kết nối khi tải số liệu phân tích!', 'error');
+    }
   }
 }
 
@@ -3042,7 +2984,9 @@ async function handleSubmitUpload(e) {
       showToast(result.message || 'Lỗi tải tệp tin!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi kết nối khi tải tệp tin', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi kết nối khi tải tệp tin', 'error');
+    }
   } finally {
     submitBtn.disabled = false;
     submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Tải tệp lên ngay';
@@ -3072,79 +3016,11 @@ async function handleDeleteAttachment(e, todoId, attachmentId) {
       showToast(result.message || 'Lỗi khi xóa tệp đính kèm!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi xóa tệp đính kèm', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi xóa tệp đính kèm', 'error');
+    }
   }
 }
-
-// ==================== SEED DEMO DATA (LEVEL 3) ====================
-async function handleSeedDemoData() {
-  if (!authToken) {
-    openAuthModal('login');
-    showToast('Vui lòng đăng nhập trước khi tạo dữ liệu mẫu!', 'info');
-    return;
-  }
-
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const nextWeek = new Date();
-  nextWeek.setDate(nextWeek.getDate() + 7);
-
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const sampleTasks = [
-    {
-      title: '🛡️ Triển khai Bảo mật Express: Helmet, CORS & Rate Limiter',
-      description: 'Thiết lập các HTTP security headers, cấu hình CSP và giới hạn tần suất request để chống brute force và tấn công DDoS.',
-      status: 'completed',
-      priority: 'high',
-      dueDate: yesterday.toISOString()
-    },
-    {
-      title: '⚡ Tích hợp Prisma ORM & Prisma Migrate (MySQL 8.4)',
-      description: 'Chuyển đổi toàn bộ câu lệnh SQL thuần sang Prisma Client type-safe, tạo migrations tự động và lược đồ dữ liệu quan hệ.',
-      status: 'completed',
-      priority: 'high',
-      dueDate: yesterday.toISOString()
-    },
-    {
-      title: '📁 Xây dựng API Upload File đính kèm với Multer (Max 5MB)',
-      description: 'Hỗ trợ tải lên ảnh, PDF, tài liệu văn phòng, kiểm tra mimetype an toàn và phục vụ file tĩnh qua /uploads static.',
-      status: 'in_progress',
-      priority: 'medium',
-      dueDate: tomorrow.toISOString()
-    },
-    {
-      title: '🔍 Tối ưu hóa Bộ lọc, Sắp xếp đa chiều & Phân trang Zod',
-      description: 'Validate request query parameters chặt chẽ bằng Zod Schema và truy vấn phân trang linh hoạt qua Prisma Client.',
-      status: 'pending',
-      priority: 'low',
-      dueDate: nextWeek.toISOString()
-    }
-  ];
-
-  seedDemoBtn.disabled = true;
-  seedDemoBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang nạp...';
-
-  try {
-    for (const task of sampleTasks) {
-      await apiFetch('/todos', {
-        method: 'POST',
-        body: JSON.stringify(task)
-      });
-    }
-    showToast('Đã nạp 4 công việc mẫu chuẩn Cấp độ 3 vào tài khoản của bạn!', 'success');
-    currentPagination.currentPage = 1;
-    await Promise.all([fetchTodos(), fetchStats()]);
-  } catch (err) {
-    showToast('Lỗi khi nạp dữ liệu mẫu!', 'error');
-  } finally {
-    seedDemoBtn.disabled = false;
-    seedDemoBtn.innerHTML = '<i class="fa-solid fa-seedling"></i> <span>Tạo dữ liệu mẫu</span>';
-  }
-}
-
 
 // ==================== TOAST NOTIFICATIONS ====================
 function showToast(message, type = 'info') {
@@ -3368,7 +3244,9 @@ async function handleBulkUpdateStatus(status) {
       showToast(result.message || 'Lỗi cập nhật trạng thái hàng loạt!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi cập nhật hàng loạt!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi cập nhật hàng loạt!', 'error');
+    }
   }
 }
 
@@ -3391,7 +3269,9 @@ async function handleBulkUpdatePriority(priority) {
       showToast(result.message || 'Lỗi cập nhật mức ưu tiên hàng loạt!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi cập nhật hàng loạt!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi cập nhật hàng loạt!', 'error');
+    }
   }
 }
 
@@ -3430,7 +3310,9 @@ async function handleBulkDelete() {
       showToast(result.message || 'Không thể xóa các công việc đã chọn!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi xóa hàng loạt!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi xóa hàng loạt!', 'error');
+    }
   }
 }
 
@@ -3576,11 +3458,13 @@ function closeImportModal() {
 function clearImportFile() {
   selectedImportFile = null;
   const fileInput = document.getElementById('importFileInput');
+  const dropzone = document.getElementById('importDropzone');
   const dropContent = document.getElementById('importDropContent');
   const fileSelected = document.getElementById('importFileSelected');
   const startBtn = document.getElementById('startImportBtn');
 
   if (fileInput) fileInput.value = '';
+  if (dropzone) dropzone.classList.remove('has-file');
   if (dropContent) dropContent.style.display = 'block';
   if (fileSelected) fileSelected.style.display = 'none';
   if (startBtn) startBtn.disabled = true;
@@ -3595,12 +3479,14 @@ function handleImportFileSelect(file) {
   }
 
   selectedImportFile = file;
+  const dropzone = document.getElementById('importDropzone');
   const dropContent = document.getElementById('importDropContent');
   const fileSelected = document.getElementById('importFileSelected');
   const fileNameEl = document.getElementById('importFileName');
   const fileSizeEl = document.getElementById('importFileSize');
   const startBtn = document.getElementById('startImportBtn');
 
+  if (dropzone) dropzone.classList.add('has-file');
   if (dropContent) dropContent.style.display = 'none';
   if (fileSelected) fileSelected.style.display = 'flex';
   if (fileNameEl) fileNameEl.textContent = file.name;
@@ -3628,10 +3514,18 @@ async function handleDownloadTemplate() {
 }
 
 async function handleStartImport() {
-  if (!selectedImportFile) return;
-
   const startBtn = document.getElementById('startImportBtn');
   const statusBox = document.getElementById('importStatusBox');
+
+  if (!selectedImportFile) {
+    if (statusBox) {
+      statusBox.className = 'import-status-box error';
+      statusBox.textContent = '⚠️ Vui lòng chọn file Excel (.xlsx) hoặc CSV trước khi bắt đầu nhập dữ liệu!';
+      statusBox.style.display = 'block';
+    }
+    showToast('Vui lòng chọn file trước khi nhập dữ liệu!', 'error');
+    return;
+  }
 
   if (startBtn) {
     startBtn.disabled = true;
@@ -3667,10 +3561,9 @@ async function handleStartImport() {
         statusBox.textContent = `❌ ${result.message || 'Lỗi nhập dữ liệu!'}`;
         statusBox.style.display = 'block';
       }
-      showToast(result.message || 'Lỗi nhập dữ liệu!', 'error');
     }
   } catch (err) {
-    if (statusBox) {
+    if (statusBox && !err.isSessionExpired) {
       statusBox.className = 'import-status-box error';
       statusBox.textContent = '❌ Lỗi kết nối máy chủ!';
       statusBox.style.display = 'block';
@@ -3885,7 +3778,9 @@ async function sendAiMessage(customText = null) {
     if (typingEl && typingEl.parentNode) {
       typingEl.parentNode.removeChild(typingEl);
     }
-    appendAssistantMessage('Lỗi kết nối máy chủ khi gọi Trợ lý AI. Vui lòng kiểm tra lại kết nối mạng!');
+    if (!err.isSessionExpired) {
+      appendAssistantMessage('Lỗi kết nối máy chủ khi gọi Trợ lý AI. Vui lòng kiểm tra lại kết nối mạng!');
+    }
   } finally {
     isAiResponding = false;
     if (aiSendBtn) aiSendBtn.disabled = false;
@@ -4097,7 +3992,9 @@ async function handleAiActionCreateTask(buttonEl) {
   } catch (err) {
     buttonEl.disabled = false;
     buttonEl.innerHTML = '<i class="fa-solid fa-plus"></i> Thử lại';
-    showToast('Lỗi mạng khi tạo công việc từ AI', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi tạo công việc từ AI', 'error');
+    }
   }
 }
 
@@ -4209,8 +4106,10 @@ async function handleAiGenerateSubtasks() {
       showToast(result.message || 'Không thể chia nhỏ công việc bằng AI!', 'error');
     }
   } catch (err) {
-    console.error('Lỗi AI chia việc:', err);
-    showToast('Lỗi kết nối khi gọi AI chia việc!', 'error');
+    if (!err.isSessionExpired) {
+      console.error('Lỗi AI chia việc:', err);
+      showToast('Lỗi kết nối khi gọi AI chia việc!', 'error');
+    }
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -4263,8 +4162,10 @@ async function handleAddSubtaskQuick() {
       showToast(result.message || 'Không thể thêm việc con!', 'error');
     }
   } catch (err) {
-    console.error('Lỗi thêm subtask:', err);
-    showToast('Lỗi mạng khi thêm việc con!', 'error');
+    if (!err.isSessionExpired) {
+      console.error('Lỗi thêm subtask:', err);
+      showToast('Lỗi mạng khi thêm việc con!', 'error');
+    }
   } finally {
     if (addBtn) addBtn.disabled = false;
   }
@@ -4300,8 +4201,10 @@ async function handleToggleSubtask(todoId, subtaskId, isChecked) {
       renderEditSubtasks(currentEditingTodoSubtasks, todoId);
     }
   } catch (err) {
-    console.error('Lỗi toggle subtask:', err);
-    showToast('Lỗi mạng khi cập nhật việc con!', 'error');
+    if (!err.isSessionExpired) {
+      console.error('Lỗi toggle subtask:', err);
+      showToast('Lỗi mạng khi cập nhật việc con!', 'error');
+    }
     renderEditSubtasks(currentEditingTodoSubtasks, todoId);
   }
 }
@@ -4329,8 +4232,10 @@ async function handleDeleteSubtask(todoId, subtaskId) {
       showToast(result.message || 'Không thể xóa việc con!', 'error');
     }
   } catch (err) {
-    console.error('Lỗi xóa subtask:', err);
-    showToast('Lỗi mạng khi xóa việc con!', 'error');
+    if (!err.isSessionExpired) {
+      console.error('Lỗi xóa subtask:', err);
+      showToast('Lỗi mạng khi xóa việc con!', 'error');
+    }
   }
 }
 
@@ -4519,9 +4424,11 @@ async function handleStopAndParseVoice() {
       if (titleEl) titleEl.textContent = 'Lỗi phân tích giọng nói';
     }
   } catch (err) {
-    console.error('Lỗi Voice-to-Task:', err);
-    showToast('Lỗi kết nối khi gửi dữ liệu giọng nói tới AI!', 'error');
-    if (titleEl) titleEl.textContent = 'Lỗi kết nối máy chủ';
+    if (!err.isSessionExpired) {
+      console.error('Lỗi Voice-to-Task:', err);
+      showToast('Lỗi kết nối khi gửi dữ liệu giọng nói tới AI!', 'error');
+      if (titleEl) titleEl.textContent = 'Lỗi kết nối máy chủ';
+    }
   } finally {
     if (parseBtn) {
       parseBtn.disabled = false;
@@ -4659,7 +4566,9 @@ async function handleSubmitTaskComment() {
       showToast(result.message || 'Không thể gửi bình luận!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi gửi bình luận!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi gửi bình luận!', 'error');
+    }
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -4689,7 +4598,9 @@ async function handleDeleteTaskComment(commentId) {
       showToast(result.message || 'Không thể xóa bình luận!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi xóa bình luận!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi xóa bình luận!', 'error');
+    }
   }
 }
 window.handleDeleteTaskComment = handleDeleteTaskComment;
@@ -5030,7 +4941,9 @@ async function handleCreateWorkspace(e) {
       showToast(result.message || 'Không thể tạo dự án!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi tạo dự án!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi tạo dự án!', 'error');
+    }
   }
 }
 
@@ -5074,7 +4987,9 @@ async function handleInviteMember() {
       showToast(result.message || 'Không thể mời thành viên!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi kết nối khi gửi lời mời vào dự án!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi kết nối khi gửi lời mời vào dự án!', 'error');
+    }
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -5100,7 +5015,9 @@ async function handleRemoveMember(wsId, userId) {
       showToast(result.message || 'Không thể xóa thành viên!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi xóa thành viên!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi xóa thành viên!', 'error');
+    }
   }
 }
 window.handleRemoveMember = handleRemoveMember;
@@ -5269,7 +5186,9 @@ async function handleToggleUserLock(userId, currentLocked) {
       showToast(result.message || `Không thể ${actionText} tài khoản!`, 'error');
     }
   } catch (err) {
-    showToast(`Lỗi kết nối khi ${actionText} tài khoản!`, 'error');
+    if (!err.isSessionExpired) {
+      showToast(`Lỗi kết nối khi ${actionText} tài khoản!`, 'error');
+    }
   }
 }
 window.handleToggleUserLock = handleToggleUserLock;
@@ -5292,7 +5211,9 @@ async function handleChangeUserRole(userId, newRole) {
       showToast(result.message || 'Không thể đổi vai trò người dùng!', 'error');
     }
   } catch (err) {
-    showToast('Lỗi mạng khi thay đổi vai trò!', 'error');
+    if (!err.isSessionExpired) {
+      showToast('Lỗi mạng khi thay đổi vai trò!', 'error');
+    }
   }
 }
 window.handleChangeUserRole = handleChangeUserRole;

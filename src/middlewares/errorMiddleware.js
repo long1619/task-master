@@ -28,6 +28,18 @@ export const globalErrorHandler = (err, req, res, next) => {
     }
   }
 
+  // Lỗi ghi file hệ thống (thường do thư mục "uploads" bị mount qua Docker volume
+  // với quyền sở hữu (owner) không khớp với user chạy container, khiến process
+  // không có quyền ghi). Trả về thông điệp rõ ràng thay vì lỗi 500 chung chung.
+  if (['EACCES', 'EROFS', 'ENOENT'].includes(err.code)) {
+    console.error('💥 LỖI GHI FILE (kiểm tra quyền thư mục uploads trên server):', err);
+    return res.status(500).json({
+      success: false,
+      status: 'error',
+      message: 'Không thể ghi file lên máy chủ. Vui lòng kiểm tra quyền truy cập thư mục uploads trên server!'
+    });
+  }
+
   // Chế độ phát triển (Development): Trả về đầy đủ thông tin lỗi và stack trace để tiện debug
   if (process.env.NODE_ENV === 'development') {
     return res.status(err.statusCode).json({

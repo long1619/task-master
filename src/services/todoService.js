@@ -514,41 +514,60 @@ export const TodoService = {
     const sheet = workbook.addWorksheet('Mau_Nhap_Cong_Viec');
 
     sheet.columns = [
-      { header: 'Tiêu đề (*)', key: 'title', width: 30 },
-      { header: 'Mô tả chi tiết', key: 'description', width: 35 },
-      { header: 'Trạng thái (pending/in_progress/completed)', key: 'status', width: 25 },
-      { header: 'Mức ưu tiên (low/medium/high)', key: 'priority', width: 22 },
-      { header: 'Hạn chót (YYYY-MM-DD HH:mm)', key: 'dueDate', width: 25 }
+      { header: 'Tiêu đề (*)', key: 'title', width: 34 },
+      { header: 'Mô tả', key: 'description', width: 42 },
+      { header: 'Trạng thái', key: 'status', width: 16 },
+      { header: 'Ưu tiên', key: 'priority', width: 14 },
+      { header: 'Hạn chót', key: 'dueDate', width: 20 }
     ];
 
-    sheet.getRow(1).height = 26;
+    sheet.getRow(1).height = 24;
     sheet.getRow(1).eachCell((cell) => {
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
     });
 
-    sheet.addRow({
-      title: 'Thiết kế giao diện Dark Mode',
-      description: 'Chuyển đổi bảng màu Obsidian và kiểm tra độ tương phản',
-      status: 'pending',
-      priority: 'high',
-      dueDate: '2026-09-25 18:00'
-    });
-    sheet.addRow({
-      title: 'Họp tổng kết tuần',
-      description: 'Báo cáo tiến độ hoàn thành các tính năng với team',
-      status: 'in_progress',
-      priority: 'medium',
-      dueDate: '2026-09-26 09:30'
-    });
-    sheet.addRow({
-      title: 'Tối ưu hóa cơ sở dữ liệu MySQL',
-      description: 'Tạo indexes cho các truy vấn phân trang và tìm kiếm',
-      status: 'completed',
-      priority: 'low',
-      dueDate: '2026-09-27 12:00'
-    });
+    const sampleRows = [
+      {
+        title: 'Thiết kế giao diện Dark Mode',
+        description: 'Chuyển đổi bảng màu Obsidian và kiểm tra độ tương phản',
+        status: 'pending',
+        priority: 'high',
+        dueDate: '2026-09-25 18:00'
+      },
+      {
+        title: 'Họp tổng kết tuần',
+        description: 'Báo cáo tiến độ hoàn thành các tính năng với team',
+        status: 'in_progress',
+        priority: 'medium',
+        dueDate: '2026-09-26 09:30'
+      },
+      {
+        title: 'Tối ưu hóa cơ sở dữ liệu MySQL',
+        description: 'Tạo indexes cho các truy vấn phân trang và tìm kiếm',
+        status: 'completed',
+        priority: 'low',
+        dueDate: '2026-09-27 12:00'
+      }
+    ];
+    sampleRows.forEach((row) => sheet.addRow(row));
+
+    // Dropdown chọn sẵn cho Trạng thái/Ưu tiên để nhập đúng, tránh gõ sai giá trị
+    for (let i = 2; i <= 500; i++) {
+      sheet.getCell(`C${i}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"pending,in_progress,completed"']
+      };
+      sheet.getCell(`D${i}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: ['"low,medium,high"']
+      };
+    }
+
+    sheet.getCell('E1').note = 'Định dạng: YYYY-MM-DD HH:mm (ví dụ 2026-09-25 18:00). Để trống nếu không có hạn chót.';
 
     return await workbook.xlsx.writeBuffer();
   },

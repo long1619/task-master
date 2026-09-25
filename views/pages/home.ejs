@@ -11,6 +11,12 @@
       </div>
 
       <div class="nav-right">
+        <!-- Nút AI Tạo việc bằng giọng nói (Gemini AI) -->
+        <button class="btn btn-ai-create" id="aiCreateTaskBtn" title="Nói tiếng Việt để AI tự động tạo công việc cho bạn">
+          <i class="fa-solid fa-microphone"></i>
+          <span>AI tạo việc</span>
+        </button>
+
         <!-- Nút Báo cáo & Năng suất (Analytics & Excel/PDF) -->
         <button class="btn btn-glass" id="openAnalyticsBtn" title="Xem thống kê năng suất và xuất báo cáo Excel/PDF">
           <i class="fa-solid fa-chart-line" style="color: var(--brand-primary);"></i>
@@ -36,30 +42,11 @@
           <span id="themeBtnText">Tối</span>
         </button>
 
-        <!-- Nút Chuông Nhắc việc Trình duyệt (Web Notification & Audio Alert) -->
-        <button class="btn btn-glass" id="toggleNotificationBtn" title="Bật/Tắt chuông nhắc việc trực tiếp trên trình duyệt">
-          <i class="fa-solid fa-bell" id="bellIcon" style="color: #f59e0b;"></i>
-          <span id="notificationBtnText">Nhắc việc</span>
-        </button>
-
-        <!-- Nút Không gian làm việc & Dự án nhóm (Workspaces) -->
-        <button class="btn btn-glass" id="openWorkspaceBtn" title="Không gian làm việc & Dự án nhóm">
-          <i class="fa-solid fa-users" style="color: #38bdf8;"></i>
-          <span>Dự án</span>
-        </button>
-
         <!-- Nút Bảng Quản trị Admin (Role: Admin) -->
         <button class="btn btn-glass btn-admin-nav" id="openAdminBtn" style="display: none;" title="Bảng quản trị hệ thống (Admin Dashboard)">
           <i class="fa-solid fa-shield-halved" style="color: #f59e0b;"></i>
           <span>Quản trị</span>
         </button>
-
-        <!-- Nút Gửi Email Bản tin AI Ngày mới (Gemini 2.5 Briefing) -->
-        <button class="btn btn-glass" id="triggerReminderEmailBtn" title="Gửi email bản tin tóm tắt ngày mới do Trợ lý AI (Gemini 2.5) chắp bút">
-          <i class="fa-solid fa-wand-magic-sparkles" style="color: #8b5cf6;"></i>
-          <span>Bản tin AI</span>
-        </button>
-
 
         <!-- Auth Navigation Status -->
         <div class="auth-nav-container">
@@ -154,15 +141,18 @@
               <label for="taskTitle">Tiêu đề công việc <span class="accent">*</span></label>
               <div class="input-wrapper">
                 <i class="fa-solid fa-pen-nib field-icon"></i>
-                <input 
-                  type="text" 
-                  id="taskTitle" 
-                  name="title" 
-                  placeholder="Ví dụ: Thiết kế giao diện sáng cho ứng dụng..." 
-                  required 
+                <input
+                  type="text"
+                  id="taskTitle"
+                  name="title"
+                  placeholder="Ví dụ: Thiết kế giao diện sáng cho ứng dụng..."
+                  required
                   minlength="3"
                   autocomplete="off"
                 >
+                <button type="button" class="btn-field-voice btn-field-voice-title" id="voiceTitleBtn" title="Nói để AI tự động tạo công việc">
+                  <i class="fa-solid fa-microphone"></i>
+                </button>
               </div>
               <div class="field-hint">
                 <span>Tối thiểu 3 ký tự</span>
@@ -174,10 +164,10 @@
             <div class="form-field">
               <label for="taskDescription">Chi tiết nội dung</label>
               <div class="input-wrapper">
-                <textarea 
-                  id="taskDescription" 
-                  name="description" 
-                  rows="3" 
+                <textarea
+                  id="taskDescription"
+                  name="description"
+                  rows="3"
                   placeholder="Ghi chú chi tiết nội dung công việc..."
                 ></textarea>
               </div>
@@ -242,37 +232,9 @@
               </div>
             </div>
 
-            <!-- Khu vực đính kèm file (Multer - Max 5MB) -->
-            <div class="form-field">
-              <label for="createFileInput">Tệp đính kèm (Tùy chọn, tối đa 5MB)</label>
-              <div class="file-dropzone" id="fileDropzone">
-                <input type="file" id="createFileInput" class="file-input-hidden" accept="image/*,.pdf,.doc,.docx,.txt,.zip">
-                <div class="dropzone-content" id="dropzoneContent">
-                  <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
-                  <span class="drop-text">Kéo thả tệp vào đây hoặc <strong>chọn tệp</strong></span>
-                  <span class="drop-hint">Hỗ trợ Ảnh, PDF, Word, Excel, ZIP (Tối đa 5MB)</span>
-                </div>
-                <div class="selected-file-preview" id="selectedFilePreview" style="display: none;">
-                  <div class="file-info-mini">
-                    <i class="fa-solid fa-paperclip" style="color: var(--brand-primary);"></i>
-                    <span class="file-name-ready" id="previewFileName">filename.ext</span>
-                    <span class="file-size-ready" id="previewFileSize">(0 KB)</span>
-                  </div>
-                  <button type="button" class="btn-remove-file" id="removeFileBtn" title="Gỡ file này">
-                    <i class="fa-solid fa-xmark"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
             <div class="create-actions-group">
               <button type="submit" class="btn btn-primary" id="submitCreateBtn">
-                <span><i class="fa-solid fa-plus"></i> Tạo việc ngay</span>
-                <span class="hotkey-badge">Ctrl + ↵</span>
-              </button>
-              <button type="button" class="btn btn-voice-create" id="voiceToTaskBtn" title="Bấm để nói tiếng Việt và tự động tạo công việc bằng AI">
-                <i class="fa-solid fa-microphone"></i>
-                <span>Nói tạo việc</span>
+                Tạo việc ngay
               </button>
             </div>
           </form>
@@ -939,6 +901,8 @@
         </button>
       </div>
     </div>
+  </div>
+
   <!-- Modal Không gian làm việc & Dự án nhóm (Workspaces Modal) -->
   <div class="modal-backdrop" id="workspaceModal">
     <div class="modal-box workspace-modal-box">
@@ -1297,16 +1261,16 @@
   <div class="modal-backdrop" id="importModalOverlay">
     <div class="modal-box modal-medium">
       <div class="modal-top">
-        <div class="modal-title-wrap">
-          <div class="modal-icon-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <div class="modal-title-group">
+          <div class="modal-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
             <i class="fa-solid fa-file-excel"></i>
           </div>
           <div>
-            <h3 class="modal-heading">Nhập công việc từ Excel / CSV</h3>
-            <p class="modal-sub">Thêm hàng loạt nhiều công việc cùng lúc nhanh chóng</p>
+            <h3>Nhập công việc từ Excel / CSV</h3>
+            <p>Thêm hàng loạt nhiều công việc cùng lúc nhanh chóng</p>
           </div>
         </div>
-        <button type="button" class="btn-modal-close" id="closeImportModalBtn" title="Đóng modal">
+        <button type="button" class="modal-close-btn" id="closeImportModalBtn" title="Đóng modal">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -1317,7 +1281,7 @@
           <div class="step-num">1</div>
           <div class="step-details">
             <h4>Tải file mẫu Excel chuẩn (.xlsx)</h4>
-            <p>Mẫu có sẵn cấu trúc cột: Tiêu đề, Mô tả, Trạng thái, Ưu tiên, Hạn chót.</p>
+            <p>Mẫu có sẵn cấu trúc cột: Tiêu đề, Mô tả, Trạng thái, Ưu tiên, Hạn chót — kèm dropdown chọn sẵn giá trị hợp lệ.</p>
           </div>
           <button type="button" class="btn btn-glass btn-sm" id="downloadTemplateBtn">
             <i class="fa-solid fa-download"></i> Tải file mẫu
@@ -1355,7 +1319,7 @@
         <div class="import-status-box" id="importStatusBox" style="display: none;"></div>
       </div>
 
-      <div class="modal-footer-actions">
+      <div class="modal-footer">
         <button type="button" class="btn btn-glass" id="cancelImportBtn">Hủy bỏ</button>
         <button type="button" class="btn btn-primary" id="startImportBtn" disabled>
           <i class="fa-solid fa-upload"></i> Bắt đầu nhập dữ liệu
