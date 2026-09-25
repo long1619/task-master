@@ -1,0 +1,1455 @@
+  <div class="app-wrapper">
+    <!-- Header / Navbar -->
+    <header class="navbar">
+      <div class="nav-left">
+        <div class="logo-box">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="brand-info">
+          <h1 class="brand-name">TaskMaster <span class="brand-badge-pro">PRO</span></h1>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <!-- Nút Báo cáo & Năng suất (Analytics & Excel/PDF) -->
+        <button class="btn btn-glass" id="openAnalyticsBtn" title="Xem thống kê năng suất và xuất báo cáo Excel/PDF">
+          <i class="fa-solid fa-chart-line" style="color: var(--brand-primary);"></i>
+          <span>Báo cáo</span>
+        </button>
+
+        <!-- Nút Nhập dữ liệu Excel/CSV (Bulk Import) -->
+        <button class="btn btn-glass" id="openImportBtn" title="Nhập hàng loạt công việc từ file Excel hoặc CSV">
+          <i class="fa-solid fa-file-excel" style="color: #10b981;"></i>
+          <span>Nhập Excel</span>
+        </button>
+
+        <!-- Nút Thùng rác (Soft Delete & Undo) -->
+        <button class="btn btn-glass" id="openTrashBtn" title="Xem danh sách công việc đã xóa & Khôi phục">
+          <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
+          <span>Thùng rác</span>
+          <span class="badge-count-pill" id="trashCountBadge">0</span>
+        </button>
+
+        <!-- Nút Chuyển Giao diện Tối / Sáng (Dark / Light Mode) -->
+        <button class="btn btn-glass" id="themeToggleBtn" title="Chuyển đổi Chế độ Tối / Sáng (Dark / Light Mode)">
+          <i class="fa-solid fa-moon" id="themeIcon" style="color: #f59e0b;"></i>
+          <span id="themeBtnText">Tối</span>
+        </button>
+
+        <!-- Nút Chuông Nhắc việc Trình duyệt (Web Notification & Audio Alert) -->
+        <button class="btn btn-glass" id="toggleNotificationBtn" title="Bật/Tắt chuông nhắc việc trực tiếp trên trình duyệt">
+          <i class="fa-solid fa-bell" id="bellIcon" style="color: #f59e0b;"></i>
+          <span id="notificationBtnText">Nhắc việc</span>
+        </button>
+
+        <!-- Nút Không gian làm việc & Dự án nhóm (Workspaces) -->
+        <button class="btn btn-glass" id="openWorkspaceBtn" title="Không gian làm việc & Dự án nhóm">
+          <i class="fa-solid fa-users" style="color: #38bdf8;"></i>
+          <span>Dự án</span>
+        </button>
+
+        <!-- Nút Bảng Quản trị Admin (Role: Admin) -->
+        <button class="btn btn-glass btn-admin-nav" id="openAdminBtn" style="display: none;" title="Bảng quản trị hệ thống (Admin Dashboard)">
+          <i class="fa-solid fa-shield-halved" style="color: #f59e0b;"></i>
+          <span>Quản trị</span>
+        </button>
+
+        <!-- Nút Gửi Email Bản tin AI Ngày mới (Gemini 2.5 Briefing) -->
+        <button class="btn btn-glass" id="triggerReminderEmailBtn" title="Gửi email bản tin tóm tắt ngày mới do Trợ lý AI (Gemini 2.5) chắp bút">
+          <i class="fa-solid fa-wand-magic-sparkles" style="color: #8b5cf6;"></i>
+          <span>Bản tin AI</span>
+        </button>
+
+
+        <!-- Auth Navigation Status -->
+        <div class="auth-nav-container">
+          <!-- View khi chưa đăng nhập -->
+          <div id="authGuestView">
+            <button class="btn btn-primary" id="openAuthModalBtn">
+              <i class="fa-solid fa-arrow-right-to-bracket"></i>
+              <span>Đăng nhập</span>
+            </button>
+          </div>
+
+          <!-- View khi đã đăng nhập -->
+          <div id="authUserView" style="display: none;">
+            <div class="user-pill">
+              <div class="user-avatar" id="navUserAvatar">U</div>
+              <div class="user-details">
+                <span class="user-name" id="navUserName">Người dùng</span>
+                <span class="user-role-badge" id="navUserRole">user</span>
+              </div>
+              <button class="btn-logout" id="logoutBtn" title="Đăng xuất">
+                <i class="fa-solid fa-right-from-bracket"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Overview Stats Metric Grid -->
+    <section class="hero-stats">
+      <div class="stat-card stat-total">
+        <div class="stat-info">
+          <span class="stat-title">Toàn bộ công việc</span>
+          <h2 class="stat-number" id="totalTasksCount">0</h2>
+        </div>
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-layer-group"></i></div>
+      </div>
+
+      <div class="stat-card stat-pending">
+        <div class="stat-info">
+          <span class="stat-title">Chờ thực hiện</span>
+          <h2 class="stat-number" id="pendingTasksCount">0</h2>
+        </div>
+        <div class="stat-icon-wrapper"><i class="fa-regular fa-clock"></i></div>
+      </div>
+
+      <div class="stat-card stat-progress">
+        <div class="stat-info">
+          <span class="stat-title">Đang xử lý</span>
+          <h2 class="stat-number" id="inProgressTasksCount">0</h2>
+        </div>
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-arrows-rotate"></i></div>
+      </div>
+
+      <div class="stat-card stat-completed">
+        <div class="stat-info">
+          <span class="stat-title">Đã hoàn thành</span>
+          <h2 class="stat-number" id="completedTasksCount">0</h2>
+        </div>
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-circle-check"></i></div>
+      </div>
+    </section>
+
+    <!-- Slim Progress Bar -->
+    <div class="progress-section">
+      <div class="progress-label">
+        <i class="fa-solid fa-chart-pie" style="color: var(--brand-primary);"></i>
+        <span>Tiến độ hoàn thành:</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="progress-value" id="completionPercentage">0%</div>
+    </div>
+
+    <!-- Main Workspace (2 Columns) -->
+    <main class="main-layout">
+      <!-- Left Column: Form Thêm Công Việc Mới -->
+      <aside class="sidebar-form">
+        <div class="card-white form-card">
+          <div class="card-header">
+            <div class="header-icon"><i class="fa-solid fa-plus"></i></div>
+            <div>
+              <h3 class="card-title">Thêm công việc mới</h3>
+              <p class="card-subtitle">Điền thông tin và tạo việc nhanh</p>
+            </div>
+          </div>
+
+          <form id="createTaskForm" class="styled-form">
+            <!-- Tiêu đề -->
+            <div class="form-field">
+              <label for="taskTitle">Tiêu đề công việc <span class="accent">*</span></label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-pen-nib field-icon"></i>
+                <input 
+                  type="text" 
+                  id="taskTitle" 
+                  name="title" 
+                  placeholder="Ví dụ: Thiết kế giao diện sáng cho ứng dụng..." 
+                  required 
+                  minlength="3"
+                  autocomplete="off"
+                >
+              </div>
+              <div class="field-hint">
+                <span>Tối thiểu 3 ký tự</span>
+                <span id="charCounter">0/100</span>
+              </div>
+            </div>
+
+            <!-- Mô tả -->
+            <div class="form-field">
+              <label for="taskDescription">Chi tiết nội dung</label>
+              <div class="input-wrapper">
+                <textarea 
+                  id="taskDescription" 
+                  name="description" 
+                  rows="3" 
+                  placeholder="Ghi chú chi tiết nội dung công việc..."
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- 2 Cột: Trạng thái & Mức độ ưu tiên -->
+            <div class="form-row-2">
+              <div class="form-field">
+                <label for="taskStatus">Trạng thái</label>
+                <div class="select-wrapper">
+                  <select id="taskStatus" name="status">
+                    <option value="pending">⏳ Chờ làm</option>
+                    <option value="in_progress">🚀 Đang làm</option>
+                    <option value="completed">✅ Đã xong</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="taskPriority">Mức độ ưu tiên</label>
+                <div class="select-wrapper">
+                  <select id="taskPriority" name="priority">
+                    <option value="low">🟢 Thấp (Low)</option>
+                    <option value="medium" selected>🟡 Vừa (Medium)</option>
+                    <option value="high">🔴 Cao (High)</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hạn chót hoàn thành -->
+            <div class="form-field">
+              <label for="taskDueDate">Hạn chót hoàn thành</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-calendar field-icon"></i>
+                <input type="datetime-local" id="taskDueDate" name="dueDate">
+              </div>
+            </div>
+
+            <!-- Phân công Dự án & Giao việc (Tùy chọn) -->
+            <div class="form-row-2">
+              <div class="form-field">
+                <label for="createTaskWorkspace">Dự án</label>
+                <div class="select-wrapper">
+                  <select id="createTaskWorkspace" name="workspaceId">
+                    <option value="">(Cá nhân)</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="createTaskAssignee">Giao cho</label>
+                <div class="select-wrapper">
+                  <select id="createTaskAssignee" name="assigneeId">
+                    <option value="">(Chính mình)</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Khu vực đính kèm file (Multer - Max 5MB) -->
+            <div class="form-field">
+              <label for="createFileInput">Tệp đính kèm (Tùy chọn, tối đa 5MB)</label>
+              <div class="file-dropzone" id="fileDropzone">
+                <input type="file" id="createFileInput" class="file-input-hidden" accept="image/*,.pdf,.doc,.docx,.txt,.zip">
+                <div class="dropzone-content" id="dropzoneContent">
+                  <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                  <span class="drop-text">Kéo thả tệp vào đây hoặc <strong>chọn tệp</strong></span>
+                  <span class="drop-hint">Hỗ trợ Ảnh, PDF, Word, Excel, ZIP (Tối đa 5MB)</span>
+                </div>
+                <div class="selected-file-preview" id="selectedFilePreview" style="display: none;">
+                  <div class="file-info-mini">
+                    <i class="fa-solid fa-paperclip" style="color: var(--brand-primary);"></i>
+                    <span class="file-name-ready" id="previewFileName">filename.ext</span>
+                    <span class="file-size-ready" id="previewFileSize">(0 KB)</span>
+                  </div>
+                  <button type="button" class="btn-remove-file" id="removeFileBtn" title="Gỡ file này">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="create-actions-group">
+              <button type="submit" class="btn btn-primary" id="submitCreateBtn">
+                <span><i class="fa-solid fa-plus"></i> Tạo việc ngay</span>
+                <span class="hotkey-badge">Ctrl + ↵</span>
+              </button>
+              <button type="button" class="btn btn-voice-create" id="voiceToTaskBtn" title="Bấm để nói tiếng Việt và tự động tạo công việc bằng AI">
+                <i class="fa-solid fa-microphone"></i>
+                <span>Nói tạo việc</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </aside>
+
+      <!-- Right Column: Danh Sách Công Việc & Bộ Lọc -->
+      <section class="task-feed">
+        <div class="card-white feed-card">
+          <!-- Toolbar Bộ Lọc & Sắp Xếp Trực Quan -->
+          <div class="feed-toolbar-advanced">
+            <!-- Ô Tìm kiếm & View Switcher -->
+            <div class="search-and-view-row">
+              <div class="search-input-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Tìm kiếm nhanh theo tiêu đề hoặc nội dung..." autocomplete="off">
+                <button type="button" class="btn-clear-search" id="clearSearchBtn" style="display: none;" title="Xóa tìm kiếm">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <!-- View Mode Switcher: Danh sách vs Bảng Kanban vs Lịch biểu -->
+              <div class="view-mode-toggle" id="viewModeToggle">
+                <button type="button" class="view-toggle-btn active" id="viewListBtn" data-view="list" title="Xem dạng danh sách công việc">
+                  <i class="fa-solid fa-list-ul"></i>
+                  <span>Danh sách</span>
+                </button>
+                <button type="button" class="view-toggle-btn" id="viewKanbanBtn" data-view="kanban" title="Xem dạng Bảng Kanban kéo thả">
+                  <i class="fa-solid fa-table-columns"></i>
+                  <span>Bảng Kanban</span>
+                </button>
+                <button type="button" class="view-toggle-btn" id="viewCalendarBtn" data-view="calendar" title="Xem dạng Lịch biểu theo tháng">
+                  <i class="fa-solid fa-calendar-days"></i>
+                  <span>Lịch biểu</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Hàng điều khiển bộ lọc & sắp xếp -->
+            <div class="toolbar-controls-row">
+              <!-- Bộ lọc Trạng thái (Segmented Tabs) -->
+              <div class="filter-pills" id="statusFilterPills">
+                <button class="pill-btn active" data-status="all">
+                  <span>Tất cả</span>
+                  <span class="pill-counter" id="badgeAll">0</span>
+                </button>
+                <button class="pill-btn" data-status="pending">
+                  <span class="dot dot-amber"></span>
+                  <span>Chờ làm</span>
+                  <span class="pill-counter" id="badgePending">0</span>
+                </button>
+                <button class="pill-btn" data-status="in_progress">
+                  <span class="dot dot-cyan"></span>
+                  <span>Đang làm</span>
+                  <span class="pill-counter" id="badgeInProgress">0</span>
+                </button>
+                <button class="pill-btn" data-status="completed">
+                  <span class="dot dot-emerald"></span>
+                  <span>Đã xong</span>
+                  <span class="pill-counter" id="badgeCompleted">0</span>
+                </button>
+              </div>
+
+              <!-- Lọc theo Mức ưu tiên (Priority) -->
+              <div class="select-wrapper select-compact">
+                <select id="filterPrioritySelect" title="Lọc theo mức độ ưu tiên">
+                  <option value="all">⚡ Tất cả mức ưu tiên</option>
+                  <option value="high">🔴 Ưu tiên Cao</option>
+                  <option value="medium">🟡 Ưu tiên Vừa</option>
+                  <option value="low">🟢 Ưu tiên Thấp</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+              </div>
+
+              <!-- Sắp xếp danh sách (Sort By) -->
+              <div class="select-wrapper select-compact">
+                <select id="sortBySelect" title="Sắp xếp danh sách">
+                  <option value="createdAt:desc">⏰ Mới tạo nhất</option>
+                  <option value="createdAt:asc">⏳ Cũ nhất</option>
+                  <option value="dueDate:asc">📅 Hạn chót: Gần nhất</option>
+                  <option value="dueDate:desc">📅 Hạn chót: Xa nhất</option>
+                  <option value="priority:desc">🔴 Ưu tiên cao trước</option>
+                </select>
+                <i class="fa-solid fa-arrow-down-wide-short select-arrow"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thanh Chọn hàng loạt (Bulk Selection Header) -->
+          <div class="list-selection-bar" id="listSelectionBar">
+            <label class="select-all-label">
+              <input type="checkbox" id="selectAllCheckbox" class="custom-checkbox">
+              <span>Chọn tất cả trên trang này</span>
+            </label>
+            <span class="selection-counter" id="selectionCounterText">0 mục đã chọn</span>
+          </div>
+
+          <!-- Danh Sách Các Task Items -->
+          <div class="task-stream" id="tasksContainer"></div>
+
+          <!-- Thanh phân trang động -->
+          <div class="pagination-bar" id="paginationBar" style="display: none;">
+            <div class="pagination-info">
+              Hiển thị <strong id="pagStart">0</strong> - <strong id="pagEnd">0</strong> trên tổng số <strong id="pagTotal">0</strong> công việc
+            </div>
+
+            <div class="pagination-controls" id="paginationControls"></div>
+
+            <div class="pagination-limit-box">
+              <label for="limitSelect">Hiển thị:</label>
+              <select id="limitSelect">
+                <option value="5">5 / trang</option>
+                <option value="10" selected>10 / trang</option>
+                <option value="20">20 / trang</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Bảng Kanban Kéo Thả (Drag & Drop Kanban Board) -->
+          <div class="kanban-board-wrapper" id="kanbanBoardWrapper" style="display: none;">
+            <div class="kanban-columns-grid">
+              <!-- Cột 1: Chờ làm (Pending) -->
+              <div class="kanban-column" data-status="pending">
+                <div class="kanban-column-header header-amber">
+                  <div class="col-title-group">
+                    <span class="col-dot dot-amber"></span>
+                    <span class="col-title">Chờ thực hiện</span>
+                  </div>
+                  <span class="col-badge" id="kanbanPendingBadge">0</span>
+                </div>
+                <div class="kanban-dropzone" id="kanbanPendingZone" data-status="pending"></div>
+              </div>
+
+              <!-- Cột 2: Đang làm (In Progress) -->
+              <div class="kanban-column" data-status="in_progress">
+                <div class="kanban-column-header header-cyan">
+                  <div class="col-title-group">
+                    <span class="col-dot dot-cyan"></span>
+                    <span class="col-title">Đang xử lý</span>
+                  </div>
+                  <span class="col-badge" id="kanbanInProgressBadge">0</span>
+                </div>
+                <div class="kanban-dropzone" id="kanbanInProgressZone" data-status="in_progress"></div>
+              </div>
+
+              <!-- Cột 3: Đã xong (Completed) -->
+              <div class="kanban-column" data-status="completed">
+                <div class="kanban-column-header header-emerald">
+                  <div class="col-title-group">
+                    <span class="col-dot dot-emerald"></span>
+                    <span class="col-title">Đã hoàn thành</span>
+                  </div>
+                  <span class="col-badge" id="kanbanCompletedBadge">0</span>
+                </div>
+                <div class="kanban-dropzone" id="kanbanCompletedZone" data-status="completed"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chế độ Xem Lịch Biểu (Calendar View / Timeline) -->
+          <div class="calendar-view-wrapper" id="calendarViewWrapper" style="display: none;">
+            <div class="calendar-header-bar">
+              <div class="calendar-nav">
+                <button type="button" class="btn btn-glass btn-icon" id="calPrevMonthBtn" title="Tháng trước">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <h3 class="calendar-month-title" id="calendarMonthTitle">Tháng 9, 2026</h3>
+                <button type="button" class="btn btn-glass btn-icon" id="calNextMonthBtn" title="Tháng sau">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button type="button" class="btn btn-glass btn-sm" id="calTodayBtn">Hôm nay</button>
+              </div>
+              <div class="calendar-legend-bar">
+                <span class="legend-badge"><span class="legend-dot dot-red"></span> Ưu tiên Cao</span>
+                <span class="legend-badge"><span class="legend-dot dot-yellow"></span> Ưu tiên Vừa</span>
+                <span class="legend-badge"><span class="legend-dot dot-green"></span> Ưu tiên Thấp</span>
+              </div>
+            </div>
+
+            <!-- Header các thứ trong tuần -->
+            <div class="calendar-weekdays-grid">
+              <div>Thứ Hai</div>
+              <div>Thứ Ba</div>
+              <div>Thứ Tư</div>
+              <div>Thứ Năm</div>
+              <div>Thứ Sáu</div>
+              <div>Thứ Bảy</div>
+              <div class="sunday-col">Chủ Nhật</div>
+            </div>
+
+            <!-- Lưới các ngày trong tháng -->
+            <div class="calendar-month-grid" id="calendarDaysGrid"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal Chỉnh Sửa Công Việc (Edit Task) -->
+  <div class="modal-backdrop" id="editModalOverlay">
+    <div class="modal-box edit-modal-large">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon"><i class="fa-solid fa-pen-to-square"></i></div>
+          <div>
+            <h3>Cập nhật công việc</h3>
+            <p>Chỉnh sửa thông tin chi tiết và lưu trực tiếp</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeEditModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Tabs Chuyển đổi trong Modal Sửa -->
+      <div class="modal-tabs-header">
+        <button type="button" class="modal-tab-btn active" id="tabBtnEditDetails" onclick="switchEditModalTab('details')">
+          <i class="fa-solid fa-list-check"></i> <span>Chi tiết & Việc con</span>
+        </button>
+        <button type="button" class="modal-tab-btn" id="tabBtnEditComments" onclick="switchEditModalTab('comments')">
+          <i class="fa-regular fa-comments"></i> <span>Bình luận</span>
+          <span class="tab-badge-pill" id="editCommentsCountBadge">0</span>
+        </button>
+        <button type="button" class="modal-tab-btn" id="tabBtnEditAudit" onclick="switchEditModalTab('audit')">
+          <i class="fa-solid fa-clock-rotate-left"></i> <span>Nhật ký hoạt động</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: Chi tiết & Việc con -->
+      <div class="modal-tab-content active" id="editTabDetailsPane">
+        <form id="editTaskForm" class="modal-form">
+          <input type="hidden" id="editTaskId">
+          
+          <div class="form-field">
+            <label for="editTaskTitle">Tiêu đề công việc <span class="accent">*</span></label>
+            <div class="input-wrapper">
+              <input type="text" id="editTaskTitle" required minlength="3">
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="editTaskDescription">Nội dung chi tiết</label>
+            <div class="input-wrapper">
+              <textarea id="editTaskDescription" rows="4"></textarea>
+            </div>
+          </div>
+
+          <!-- Phân công Dự án & Người thực hiện -->
+          <div class="form-row-2">
+            <div class="form-field">
+              <label for="editTaskWorkspace"><i class="fa-solid fa-folder"></i> Dự án / Không gian</label>
+              <div class="select-wrapper">
+                <select id="editTaskWorkspace">
+                  <option value="">(Cá nhân / Không thuộc dự án)</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="editTaskAssignee"><i class="fa-solid fa-user-check"></i> Người thực hiện (Assignee)</label>
+              <div class="select-wrapper">
+                <select id="editTaskAssignee">
+                  <option value="">(Chưa phân công)</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-field">
+              <label for="editTaskStatus">Trạng thái</label>
+              <div class="select-wrapper">
+                <select id="editTaskStatus">
+                  <option value="pending">⏳ Chờ thực hiện</option>
+                  <option value="in_progress">🚀 Đang xử lý</option>
+                  <option value="completed">✅ Đã hoàn thành</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="editTaskPriority">Mức độ ưu tiên</label>
+              <div class="select-wrapper">
+                <select id="editTaskPriority">
+                  <option value="low">🟢 Thấp (Low)</option>
+                  <option value="medium">🟡 Vừa (Medium)</option>
+                  <option value="high">🔴 Cao (High)</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="editTaskDueDate">Hạn chót hoàn thành</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-calendar field-icon"></i>
+              <input type="datetime-local" id="editTaskDueDate">
+            </div>
+          </div>
+
+          <!-- Danh sách tệp hiện có trong modal edit -->
+          <div class="form-field" id="editAttachmentsSection" style="display: none;">
+            <label>Tệp đính kèm hiện tại:</label>
+            <div class="attachments-compact-list" id="editAttachmentsList"></div>
+          </div>
+
+          <!-- Danh sách việc con (Checklist / Subtasks - Next-Level AI) -->
+          <div class="form-field subtasks-section" id="editSubtasksSection">
+            <div class="subtasks-header-row">
+              <div class="subtasks-title-wrap">
+                <label><i class="fa-solid fa-list-check"></i> Việc con (Checklist)</label>
+                <span class="subtasks-counter-badge" id="editSubtasksCounter">0/0</span>
+              </div>
+              <button type="button" class="btn-ai-breakdown" id="btnAiGenerateSubtasks" title="Dùng Gemini AI để tự động phân rã công việc này thành các bước cụ thể">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Chia việc</span>
+              </button>
+            </div>
+
+            <!-- Mini Progress Bar -->
+            <div class="subtask-progress-bar-wrap" id="editSubtasksProgressWrap" style="display: none;">
+              <div class="subtask-progress-bar-fill" id="editSubtasksProgressFill" style="width: 0%;"></div>
+            </div>
+
+            <!-- Danh sách subtask items -->
+            <div class="subtasks-list" id="editSubtasksList">
+              <p class="subtasks-empty-hint">Chưa có việc con nào. Bấm <strong>"AI Chia việc"</strong> để AI tự động phân rã!</p>
+            </div>
+
+            <!-- Form thêm subtask nhanh -->
+            <div class="add-subtask-quick-box">
+              <input type="text" id="newSubtaskTitleInput" placeholder="Thêm bước công việc mới..." autocomplete="off">
+              <button type="button" class="btn-add-subtask" id="btnAddSubtaskQuick" title="Thêm bước này">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <button type="button" class="btn" id="deleteFromEditBtn" onclick="promptDeleteFromEditModal()" style="color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.06); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 0.88rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 500;">
+              <i class="fa-regular fa-trash-can"></i> <span>Xóa việc này</span>
+            </button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button type="button" class="btn btn-ghost" id="cancelEditBtn">Hủy bỏ</button>
+              <button type="submit" class="btn btn-primary" id="saveEditBtn">
+                <i class="fa-solid fa-check"></i> Lưu thay đổi
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tab 2: Bình luận & Trao đổi (Task Comments) -->
+      <div class="modal-tab-content" id="editTabCommentsPane" style="display: none;">
+        <div class="task-comments-wrapper">
+          <div class="comments-scroll-area" id="editCommentsListContainer">
+            <div class="comments-empty-hint">
+              <i class="fa-regular fa-comments" style="font-size: 1.5rem; opacity: 0.4; margin-bottom: 8px;"></i>
+              <p>Chưa có bình luận nào cho công việc này.</p>
+              <span>Hãy trao đổi và thảo luận công việc với đồng nghiệp bên dưới!</span>
+            </div>
+          </div>
+
+          <div class="add-comment-composer">
+            <textarea id="taskNewCommentInput" placeholder="Viết bình luận, phản hồi tiến độ hoặc ghi chú..." rows="2"></textarea>
+            <div class="composer-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="btnSubmitTaskComment">
+                <i class="fa-solid fa-paper-plane"></i> <span>Gửi bình luận</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Nhật ký Hoạt động (Activity Audit Log) -->
+      <div class="modal-tab-content" id="editTabAuditPane" style="display: none;">
+        <div class="task-audit-wrapper">
+          <div class="audit-timeline-list" id="editAuditTimelineContainer">
+            <div class="audit-empty-hint">
+              <i class="fa-solid fa-clock-rotate-left" style="font-size: 1.5rem; opacity: 0.4; margin-bottom: 8px;"></i>
+              <p>Chưa có lịch sử hoạt động nào được ghi nhận.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Xác Nhận Xóa Công Việc (Confirm Delete Modal) -->
+  <div class="modal-backdrop" id="deleteConfirmModal">
+    <div class="modal-box confirm-dialog-box">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon icon-rose">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <h3>Xác nhận xóa công việc</h3>
+            <p>Chuyển công việc vào thùng rác để lưu trữ tạm thời</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeDeleteConfirmBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="confirm-modal-body">
+        <p class="confirm-question">Bạn có chắc chắn muốn xóa công việc này không?</p>
+        <div class="confirm-task-preview">
+          <i class="fa-solid fa-clipboard-list confirm-task-icon"></i>
+          <span class="confirm-task-title" id="confirmDeleteTaskTitle">...</span>
+        </div>
+        <div class="confirm-notice">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Công việc sẽ được chuyển vào <strong>Thùng rác</strong> và bạn có thể khôi phục lại bất kỳ lúc nào.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="cancelDeleteModalBtn">Hủy bỏ</button>
+        <button type="button" class="btn btn-danger" id="submitDeleteModalBtn">
+          <i class="fa-solid fa-trash-can"></i> Xác nhận xóa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Đính Kèm Tệp Tin (Upload File Modal) -->
+  <div class="modal-backdrop" id="uploadAttachmentModal">
+    <div class="modal-box">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon"><i class="fa-solid fa-paperclip"></i></div>
+          <div>
+            <h3>Đính kèm tệp tin</h3>
+            <p id="uploadTargetTaskTitle">Tải file lên công việc</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeUploadModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="uploadAttachmentForm" class="modal-form">
+        <input type="hidden" id="uploadTargetTaskId">
+        
+        <div class="file-dropzone" id="modalDropZone" style="padding: 24px;">
+          <input type="file" id="modalFileInput" class="file-input-hidden" required accept="image/*,.pdf,.doc,.docx,.txt,.zip">
+          <div class="dropzone-content" id="modalDropPrompt">
+            <i class="fa-solid fa-file-arrow-up drop-icon" style="font-size: 2rem;"></i>
+            <span class="drop-text">Bấm vào đây hoặc kéo thả tệp tin</span>
+            <span class="drop-hint">Hỗ trợ Ảnh, PDF, Word, TXT, ZIP • Tối đa 5MB</span>
+          </div>
+          <div class="selected-file-preview" id="modalSelectedFile" style="display: none;">
+            <div class="file-info-mini">
+              <i class="fa-solid fa-file-lines" style="color: var(--brand-primary);"></i>
+              <span class="file-name-ready" id="modalFileName">file_name.pdf</span>
+              <span class="file-size-ready" id="modalFileSize">240 KB</span>
+            </div>
+            <button type="button" class="btn-remove-file" id="modalClearFileBtn"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" id="cancelUploadBtn">Hủy bỏ</button>
+          <button type="submit" class="btn btn-primary" id="submitUploadBtn">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Tải tệp lên
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Modal Xác thực Tài khoản (Đăng nhập / Đăng ký) -->
+  <div class="modal-backdrop" id="authModalOverlay">
+    <div class="modal-box">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <div>
+            <h3 id="authModalHeaderTitle">Xác thực tài khoản</h3>
+            <p>Bảo mật bằng JWT, bcrypt & Zod validation</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeAuthModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Auth Tabs Switcher -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="tabLoginBtn">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập
+        </button>
+        <button type="button" class="auth-tab-btn" id="tabRegisterBtn">
+          <i class="fa-solid fa-user-plus"></i> Đăng ký
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="modal-form">
+        <div class="form-field">
+          <label for="loginEmail">Địa chỉ Email <span class="accent">*</span></label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-envelope field-icon"></i>
+            <input type="email" id="loginEmail" placeholder="example@gmail.com" required autocomplete="email">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="loginPassword">Mật khẩu <span class="accent">*</span></label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock field-icon"></i>
+            <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitLoginBtn" style="justify-content: center; width: 100%;">
+          <span>Đăng nhập vào hệ thống</span>
+        </button>
+
+        <div class="auth-divider">
+          <span>hoặc dùng thử nhanh</span>
+        </div>
+
+        <button type="button" class="btn btn-quick-test" id="quickTestLoginBtn">
+          <i class="fa-solid fa-bolt"></i> Đăng nhập nhanh với tài khoản Demo
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="modal-form" style="display: none;">
+        <div class="form-field">
+          <label for="registerName">Họ và tên (Tối thiểu 2 ký tự) <span class="accent">*</span></label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-user field-icon"></i>
+            <input type="text" id="registerName" placeholder="Nguyễn Văn A" required minlength="2">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="registerEmail">Địa chỉ Email <span class="accent">*</span></label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-envelope field-icon"></i>
+            <input type="email" id="registerEmail" placeholder="example@gmail.com" required>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="registerPassword">Mật khẩu (Tối thiểu 6 ký tự) <span class="accent">*</span></label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock field-icon"></i>
+            <input type="password" id="registerPassword" placeholder="••••••••" required minlength="6">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitRegisterBtn" style="justify-content: center; width: 100%;">
+          <span>Tạo tài khoản mới</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Thùng Rác (Trash Bin & Restore) -->
+  <div class="modal-backdrop" id="trashModalOverlay">
+    <div class="modal-box modal-extra-wide">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon icon-rose"><i class="fa-solid fa-trash-can"></i></div>
+          <div>
+            <h3>Thùng rác công việc</h3>
+            <p>Các công việc đã xóa được lưu tạm thời. Bạn có thể khôi phục hoặc xóa vĩnh viễn.</p>
+          </div>
+        </div>
+        <div class="modal-top-actions">
+          <button type="button" class="btn btn-danger-outline btn-empty-trash" id="emptyTrashModalBtn" title="Xóa toàn bộ các mục trong thùng rác">
+            <i class="fa-solid fa-broom" style="pointer-events: none;"></i> <span style="pointer-events: none;">Dọn sạch thùng rác</span>
+          </button>
+          <button type="button" class="modal-close-btn" id="closeTrashModalBtn">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="trash-list-container" id="trashListContainer">
+        <!-- Danh sách item thùng rác được render động từ JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Xác Nhận Xóa Vĩnh Viễn 1 Công Việc (Permanent Delete Confirm Modal) -->
+  <div class="modal-backdrop modal-stacked" id="permanentDeleteModal">
+    <div class="modal-box confirm-dialog-box modal-box-danger">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon icon-rose">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <h3 style="color: #ef4444;">Xóa vĩnh viễn công việc</h3>
+            <p>Hành động này không thể hoàn tác sau khi xác nhận</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closePermanentDeleteModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="confirm-modal-body">
+        <p class="confirm-question">Bạn có chắc chắn muốn xóa VĨNH VIỄN công việc này khỏi hệ thống?</p>
+        <div class="confirm-task-preview" style="border-left: 3px solid #ef4444;">
+          <i class="fa-solid fa-trash-can confirm-task-icon" style="color: #ef4444;"></i>
+          <span class="confirm-task-title" id="confirmPermanentDeleteTaskTitle">...</span>
+        </div>
+        <div class="confirm-notice" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); color: #dc2626;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Toàn bộ dữ liệu, tệp đính kèm và lịch sử của công việc sẽ bị xóa hoàn toàn khỏi cơ sở dữ liệu.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="cancelPermanentDeleteModalBtn">Hủy bỏ</button>
+        <button type="button" class="btn btn-danger" id="submitPermanentDeleteModalBtn" style="background: linear-gradient(135deg, #ef4444, #b91c1c); border: none;">
+          <i class="fa-solid fa-trash-can"></i> Xóa vĩnh viễn ngay
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Xác Nhận Dọn Sạch Toàn Bộ Thùng Rác (Empty Trash Confirm Modal) -->
+  <div class="modal-backdrop modal-stacked" id="emptyTrashConfirmModal">
+    <div class="modal-box confirm-dialog-box modal-box-danger">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon icon-rose">
+            <i class="fa-solid fa-broom"></i>
+          </div>
+          <div>
+            <h3 style="color: #ef4444;">Dọn sạch thùng rác</h3>
+            <p>Hành động này sẽ xóa vĩnh viễn tất cả công việc đã xóa</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeEmptyTrashConfirmBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="confirm-modal-body">
+        <p class="confirm-question">CẢNH BÁO: Bạn sắp dọn sạch toàn bộ thùng rác!</p>
+        <div class="confirm-notice" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); color: #dc2626;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span id="emptyTrashConfirmMsg">Tất cả các công việc trong thùng rác sẽ bị xóa vĩnh viễn và không thể khôi phục.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="cancelEmptyTrashConfirmBtn">Hủy bỏ</button>
+        <button type="button" class="btn btn-danger" id="submitEmptyTrashConfirmBtn" style="background: linear-gradient(135deg, #ef4444, #b91c1c); border: none;">
+          <i class="fa-solid fa-broom"></i> Dọn sạch ngay
+        </button>
+      </div>
+    </div>
+  <!-- Modal Không gian làm việc & Dự án nhóm (Workspaces Modal) -->
+  <div class="modal-backdrop" id="workspaceModal">
+    <div class="modal-box workspace-modal-box">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon icon-cyan"><i class="fa-solid fa-users"></i></div>
+          <div>
+            <h3>Không gian làm việc & Dự án nhóm</h3>
+            <p>Quản lý dự án, cộng tác nhóm và mời thành viên</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeWorkspaceModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="workspace-layout">
+        <!-- Cột trái: Danh sách Workspace -->
+        <div class="workspace-sidebar">
+          <div class="workspace-sidebar-header">
+            <h4>Dự án của bạn</h4>
+            <button type="button" class="btn btn-sm btn-primary" id="btnShowCreateWorkspaceForm">
+              <i class="fa-solid fa-plus"></i> Tạo mới
+            </button>
+          </div>
+          <div class="workspace-list" id="workspaceListContainer">
+            <div class="workspace-empty-hint">Đang tải danh sách dự án...</div>
+          </div>
+        </div>
+
+        <!-- Cột phải: Chi tiết Workspace đang chọn -->
+        <div class="workspace-main-pane" id="workspaceMainPane">
+          <!-- Form tạo workspace mới (khi bấm tạo mới) -->
+          <div id="createWorkspaceBox" style="display: none;">
+            <div class="box-title-row">
+              <h4>Tạo Dự án / Không gian mới</h4>
+              <button type="button" class="btn-close-box" id="btnCancelCreateWorkspace"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="createWorkspaceForm">
+              <div class="form-field">
+                <label>Tên dự án / Không gian <span class="accent">*</span></label>
+                <input type="text" id="newWorkspaceName" placeholder="Ví dụ: Triển khai Cổng Thanh toán VNPay" required>
+              </div>
+              <div class="form-field">
+                <label>Mô tả dự án</label>
+                <textarea id="newWorkspaceDesc" placeholder="Mô tả mục tiêu, phạm vi dự án..." rows="3"></textarea>
+              </div>
+              <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px;">
+                <button type="button" class="btn btn-ghost" id="btnCancelCreateWorkspace2">Hủy</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Lưu dự án</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Chi tiết workspace đang chọn -->
+          <div id="workspaceDetailsBox">
+            <div class="ws-detail-header">
+              <div>
+                <h3 id="wsDetailTitle">Chọn một dự án để xem chi tiết</h3>
+                <p id="wsDetailDesc" style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;"></p>
+              </div>
+              <span class="badge badge-owner" id="wsOwnerBadge" style="display: none;"><i class="fa-solid fa-crown"></i> Trưởng dự án: Bạn</span>
+            </div>
+
+            <div class="ws-members-section" id="wsMembersSection" style="display: none;">
+              <div class="ws-members-header">
+                <h4><i class="fa-solid fa-user-group"></i> Thành viên dự án (<span id="wsMembersCount">0</span>)</h4>
+              </div>
+
+              <!-- Form mời thành viên -->
+              <div class="invite-member-form">
+                <input type="email" id="inviteMemberEmail" placeholder="Nhập email thành viên để mời vào dự án..." autocomplete="off">
+                <select id="inviteMemberRole" style="width: 130px;">
+                  <option value="member">Thành viên</option>
+                  <option value="admin">Quản lý (Admin)</option>
+                </select>
+                <button type="button" class="btn btn-primary" id="btnInviteMember">
+                  <i class="fa-solid fa-user-plus"></i> <span>Mời</span>
+                </button>
+              </div>
+
+              <!-- Danh sách thành viên -->
+              <div class="ws-members-list" id="wsMembersList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Quản trị Admin Dashboard (RBAC) -->
+  <div class="modal-backdrop" id="adminDashboardModal">
+    <div class="modal-box admin-modal-box">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon icon-amber"><i class="fa-solid fa-shield-halved"></i></div>
+          <div>
+            <h3>Trung tâm Quản trị Hệ thống (Admin Portal)</h3>
+            <p>Quản lý người dùng, phân quyền RBAC và theo dõi chỉ số toàn sàn</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeAdminModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Top Metric Cards -->
+      <div class="admin-stats-grid">
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-blue"><i class="fa-solid fa-users"></i></div>
+          <div class="admin-stat-info">
+            <span class="admin-stat-val" id="adminStatTotalUsers">0</span>
+            <span class="admin-stat-lbl">Tổng người dùng</span>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-emerald"><i class="fa-solid fa-user-check"></i></div>
+          <div class="admin-stat-info">
+            <span class="admin-stat-val" id="adminStatActiveUsers">0</span>
+            <span class="admin-stat-lbl">Tài khoản hoạt động</span>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-rose"><i class="fa-solid fa-user-lock"></i></div>
+          <div class="admin-stat-info">
+            <span class="admin-stat-val" id="adminStatLockedUsers">0</span>
+            <span class="admin-stat-lbl">Tài khoản bị khóa</span>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="admin-stat-icon icon-purple"><i class="fa-solid fa-list-check"></i></div>
+          <div class="admin-stat-info">
+            <span class="admin-stat-val" id="adminStatTotalTodos">0</span>
+            <span class="admin-stat-lbl">Tổng công việc toàn sàn</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Management Controls -->
+      <div class="admin-users-section">
+        <div class="admin-users-header">
+          <h4><i class="fa-solid fa-users-gear"></i> Quản lý Người dùng</h4>
+          <div class="admin-filter-row">
+            <div class="search-input-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="adminUserSearchInput" placeholder="Tìm theo tên hoặc email...">
+            </div>
+            <select id="adminRoleFilter">
+              <option value="all">Tất cả vai trò</option>
+              <option value="user">Người dùng (User)</option>
+              <option value="admin">Quản trị viên (Admin)</option>
+            </select>
+            <select id="adminStatusFilter">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="locked">Đã bị khóa</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="admin-table-responsive">
+          <table class="admin-users-table">
+            <thead>
+              <tr>
+                <th>Người dùng</th>
+                <th>Vai trò</th>
+                <th>Số công việc</th>
+                <th>Ngày tham gia</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsersTableBody">
+              <tr><td colspan="6" style="text-align: center; padding: 24px;">Đang tải danh sách người dùng...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Nhận diện Giọng nói Tiếng Việt (Voice-to-Task Modal) -->
+  <div class="modal-backdrop modal-stacked" id="voiceRecordingModal">
+    <div class="modal-box voice-modal-box">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="voice-badge">
+            <span class="voice-pulse-dot"></span>
+            <span>Web Speech API • Tiếng Việt (vi-VN)</span>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeVoiceModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="voice-visualizer-container">
+        <div class="voice-mic-circle active" id="voiceMicVisualizer">
+          <i class="fa-solid fa-microphone"></i>
+        </div>
+        <div class="voice-wave-bars">
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+        </div>
+        <h4 class="voice-status-title" id="voiceStatusTitle">Đang lắng nghe bạn nói...</h4>
+        <p class="voice-status-hint">Hãy nói tự nhiên, ví dụ: <em>"Nhắc tôi 9h sáng mai họp tổng kết dự án với đối tác mức ưu tiên cao"</em></p>
+      </div>
+
+      <div class="voice-transcript-box">
+        <label><i class="fa-solid fa-quote-left"></i> Văn bản nhận diện được:</label>
+        <p class="voice-transcript-text" id="voiceTranscriptText">Đang nghe âm thanh từ microphone...</p>
+      </div>
+
+      <div class="modal-footer" style="justify-content: center; gap: 12px;">
+        <button type="button" class="btn btn-ghost" id="cancelVoiceBtn">Hủy bỏ</button>
+        <button type="button" class="btn btn-primary btn-stop-and-parse" id="stopAndParseVoiceBtn">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Dừng & AI Tạo việc ngay
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Báo Cáo & Thống Kê Năng Suất (Analytics & Export) -->
+  <div class="modal-backdrop" id="analyticsModalOverlay">
+    <div class="modal-box modal-extra-wide printable-analytics-modal">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon icon-indigo"><i class="fa-solid fa-chart-line"></i></div>
+          <div>
+            <h3>Báo cáo Năng suất & Thống kê</h3>
+            <p>Tổng quan hiệu suất công việc cá nhân và xuất dữ liệu báo cáo</p>
+          </div>
+        </div>
+        <div class="modal-top-actions">
+          <button type="button" class="btn btn-primary-gradient" id="exportExcelBtn" title="Tải file Excel .xlsx được định dạng chuyên nghiệp">
+            <i class="fa-solid fa-file-excel"></i> Xuất Excel (.xlsx)
+          </button>
+          <button type="button" class="btn btn-glass" id="printReportBtn" title="In hoặc lưu file PDF">
+            <i class="fa-solid fa-print"></i> In / Xuất PDF
+          </button>
+          <button type="button" class="modal-close-btn" id="closeAnalyticsModalBtn">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="analytics-content-body" id="analyticsBody">
+        <!-- KPI Cards Grid -->
+        <div class="analytics-kpi-grid">
+          <div class="analytics-kpi-card kpi-rate">
+            <span class="kpi-label">Tỷ lệ hoàn thành</span>
+            <div class="kpi-value-row">
+              <span class="kpi-number" id="kpiCompletionRate">0%</span>
+              <span class="kpi-sub" id="kpiCompletedRatio">0/0 việc</span>
+            </div>
+            <div class="kpi-mini-bar"><div class="kpi-mini-fill" id="kpiRateBar" style="width: 0%"></div></div>
+          </div>
+
+          <div class="analytics-kpi-card kpi-pending">
+            <span class="kpi-label">Chờ thực hiện</span>
+            <span class="kpi-number" id="kpiPendingCount">0</span>
+            <span class="kpi-hint">Đang xếp hàng chờ xử lý</span>
+          </div>
+
+          <div class="analytics-kpi-card kpi-progress">
+            <span class="kpi-label">Đang tiến hành</span>
+            <span class="kpi-number" id="kpiInProgressCount">0</span>
+            <span class="kpi-hint">Công việc đang thực hiện</span>
+          </div>
+
+          <div class="analytics-kpi-card kpi-overdue">
+            <span class="kpi-label">Quá hạn chót</span>
+            <span class="kpi-number" id="kpiOverdueCount">0</span>
+            <span class="kpi-hint danger-text">Cần ưu tiên xử lý gấp</span>
+          </div>
+        </div>
+
+        <!-- Visual Analytics 2-Column Section -->
+        <div class="analytics-charts-grid">
+          <!-- Cột 1: Năng suất 7 ngày qua (Bar Chart) -->
+          <div class="chart-panel">
+            <div class="chart-panel-header">
+              <h4><i class="fa-solid fa-calendar-check"></i> Hiệu suất 7 ngày gần nhất</h4>
+              <span class="chart-legend"><span class="legend-dot dot-cyan"></span> Đã xong</span>
+            </div>
+            <div class="weekly-bar-chart" id="weeklyBarChart">
+              <!-- Render động 7 cột từ JS -->
+            </div>
+          </div>
+
+          <!-- Cột 2: Phân bổ mức độ ưu tiên & trạng thái -->
+          <div class="chart-panel">
+            <div class="chart-panel-header">
+              <h4><i class="fa-solid fa-layer-group"></i> Phân bổ theo mức ưu tiên</h4>
+            </div>
+            <div class="priority-distribution-list" id="priorityDistributionList">
+              <!-- Render động từ JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Bulk Action Bar (Thanh Thao Tác Hàng Loạt Nổi) -->
+  <div class="floating-bulk-bar" id="bulkActionBar" style="display: none;">
+    <div class="bulk-counter-pill">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>Đã chọn <strong id="bulkSelectedCount">0</strong> công việc</span>
+    </div>
+    
+    <div class="bulk-actions-wrapper">
+      <div class="bulk-group">
+        <span class="bulk-group-label">Đổi trạng thái:</span>
+        <button type="button" class="btn-bulk" id="bulkStatusPendingBtn" title="Chuyển sang Chờ thực hiện">
+          <i class="fa-solid fa-clock"></i> <span>Chờ làm</span>
+        </button>
+        <button type="button" class="btn-bulk" id="bulkStatusProgressBtn" title="Chuyển sang Đang xử lý">
+          <i class="fa-solid fa-spinner"></i> <span>Đang làm</span>
+        </button>
+        <button type="button" class="btn-bulk" id="bulkStatusCompleteBtn" title="Chuyển sang Đã hoàn thành">
+          <i class="fa-solid fa-check"></i> <span>Đã xong</span>
+        </button>
+      </div>
+
+      <div class="bulk-separator"></div>
+
+      <div class="bulk-group">
+        <span class="bulk-group-label">Ưu tiên:</span>
+        <button type="button" class="btn-bulk" id="bulkPriorityHighBtn" title="Đặt Mức ưu tiên Cao">
+          <i class="fa-solid fa-fire text-danger"></i> <span>Ưu tiên Cao</span>
+        </button>
+      </div>
+
+      <div class="bulk-separator"></div>
+
+      <button type="button" class="btn-bulk btn-bulk-danger" id="bulkDeleteBtn" title="Chuyển các việc đã chọn vào thùng rác">
+        <i class="fa-solid fa-trash-can"></i> <span>Xóa (<span id="bulkDeleteCount">0</span>)</span>
+      </button>
+
+      <button type="button" class="btn-bulk-dismiss" id="bulkClearSelectionBtn" title="Bỏ chọn tất cả">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Nhập Dữ Liệu Excel/CSV (Bulk Import Modal) -->
+  <div class="modal-backdrop" id="importModalOverlay">
+    <div class="modal-box modal-medium">
+      <div class="modal-top">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <i class="fa-solid fa-file-excel"></i>
+          </div>
+          <div>
+            <h3 class="modal-heading">Nhập công việc từ Excel / CSV</h3>
+            <p class="modal-sub">Thêm hàng loạt nhiều công việc cùng lúc nhanh chóng</p>
+          </div>
+        </div>
+        <button type="button" class="btn-modal-close" id="closeImportModalBtn" title="Đóng modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body-content" style="padding: 20px 24px;">
+        <!-- Bước 1: Tải file mẫu -->
+        <div class="import-step-card">
+          <div class="step-num">1</div>
+          <div class="step-details">
+            <h4>Tải file mẫu Excel chuẩn (.xlsx)</h4>
+            <p>Mẫu có sẵn cấu trúc cột: Tiêu đề, Mô tả, Trạng thái, Ưu tiên, Hạn chót.</p>
+          </div>
+          <button type="button" class="btn btn-glass btn-sm" id="downloadTemplateBtn">
+            <i class="fa-solid fa-download"></i> Tải file mẫu
+          </button>
+        </div>
+
+        <!-- Bước 2: Tải lên file của bạn -->
+        <div class="import-step-card step-upload">
+          <div class="step-num">2</div>
+          <div class="step-details" style="width: 100%;">
+            <h4>Chọn file để nhập</h4>
+            <div class="import-dropzone" id="importDropzone">
+              <input type="file" id="importFileInput" accept=".xlsx, .csv" style="display: none;">
+              <div class="import-drop-content" id="importDropContent">
+                <i class="fa-solid fa-cloud-arrow-up drop-icon-excel"></i>
+                <span class="import-drop-text">Kéo thả file <strong>.xlsx</strong> hoặc <strong>.csv</strong> vào đây</span>
+                <span class="import-drop-sub">hoặc click để duyệt tìm tệp tin từ máy tính</span>
+              </div>
+              <div class="import-file-selected" id="importFileSelected" style="display: none;">
+                <div class="import-selected-info">
+                  <i class="fa-solid fa-file-excel" style="color: #10b981; font-size: 1.4rem;"></i>
+                  <div>
+                    <strong id="importFileName">cong_viec.xlsx</strong>
+                    <div id="importFileSize" style="font-size: 0.8rem; color: var(--text-muted);">(0 KB)</div>
+                  </div>
+                </div>
+                <button type="button" class="btn-remove-file" id="removeImportFileBtn" title="Gỡ file">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="import-status-box" id="importStatusBox" style="display: none;"></div>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button type="button" class="btn btn-glass" id="cancelImportBtn">Hủy bỏ</button>
+        <button type="button" class="btn btn-primary" id="startImportBtn" disabled>
+          <i class="fa-solid fa-upload"></i> Bắt đầu nhập dữ liệu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating AI Trigger Button -->
+  <button type="button" class="ai-copilot-trigger" id="aiCoPilotTriggerBtn" title="Trợ lý AI (Hỏi đáp, lên kế hoạch & tạo việc)">
+    <span class="ai-trigger-glow"></span>
+    <span class="ai-trigger-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+    <span class="ai-trigger-label">Trợ lý AI</span>
+    <span class="ai-pulse-dot"></span>
+  </button>
+
+  <!-- AI Chat Drawer / Window -->
+  <div class="ai-chat-drawer" id="aiChatDrawer" style="display: none;">
+    <!-- AI Drawer Header -->
+    <div class="ai-drawer-header">
+      <div class="ai-header-info">
+        <div class="ai-avatar">
+          <i class="fa-solid fa-brain"></i>
+          <span class="ai-status-indicator"></span>
+        </div>
+        <div class="ai-header-titles">
+          <div class="ai-header-title-row">
+            <h4>Trợ lý AI</h4>
+            <span class="ai-model-badge">Gemini 2.5</span>
+          </div>
+          <p class="ai-header-sub">Trợ lý lập kế hoạch & quản lý công việc</p>
+        </div>
+      </div>
+      <div class="ai-header-actions">
+        <button type="button" class="ai-btn-icon" id="aiClearChatBtn" title="Làm mới cuộc trò chuyện">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+        <button type="button" class="ai-btn-icon" id="aiCloseChatBtn" title="Thu nhỏ khung chat">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Messages Body -->
+    <div class="ai-messages-container" id="aiMessagesContainer">
+      <!-- Tin nhắn chào mừng mặc định -->
+      <div class="ai-msg ai-msg-assistant">
+        <div class="ai-msg-avatar"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div class="ai-msg-content">
+          <p>Xin chào! Tôi là <strong>Trợ lý AI</strong>. Tôi có thể giúp bạn:</p>
+          <ul>
+            <li>Tóm tắt & phân tích các việc cần làm hôm nay</li>
+            <li>Lên kế hoạch và tự động đề xuất tạo công việc mới</li>
+            <li>Đề xuất xử lý việc gấp hoặc quá hạn</li>
+          </ul>
+          <p class="ai-msg-hint">💡 Hãy chọn gợi ý nhanh bên dưới hoặc gõ yêu cầu của bạn!</p>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div class="ai-quick-suggestions" id="aiQuickSuggestions">
+        <button type="button" class="ai-chip" data-prompt="Hôm nay tôi có công việc gì gấp hoặc quá hạn không?">
+          🔥 Việc gấp & quá hạn?
+        </button>
+        <button type="button" class="ai-chip" data-prompt="Tóm tắt tiến độ và năng suất làm việc của tôi hiện tại">
+          📊 Tóm tắt tiến độ
+        </button>
+        <button type="button" class="ai-chip" data-prompt="Lên kế hoạch 3 bước để chuẩn bị ra mắt tính năng mới">
+          🚀 Lên kế hoạch việc mới
+        </button>
+        <button type="button" class="ai-chip" data-prompt="Tạo giúp tôi 1 việc: Kiểm tra bảo mật và tối ưu cơ sở dữ liệu với mức ưu tiên Cao">
+          ➕ Đề xuất tạo việc nhanh
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Chat Input Area -->
+    <form class="ai-chat-input-bar" id="aiChatForm">
+      <input 
+        type="text" 
+        id="aiChatInput" 
+        class="ai-chat-input" 
+        placeholder="Hỏi AI về công việc hoặc nhờ lên kế hoạch..." 
+        autocomplete="off"
+        maxlength="1000"
+      >
+      <button type="button" class="ai-mic-btn" id="aiVoiceChatBtn" title="Nói tiếng Việt để hỏi AI">
+        <i class="fa-solid fa-microphone"></i>
+      </button>
+      <button type="submit" class="ai-send-btn" id="aiSendBtn" title="Gửi tin nhắn">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- Toast Stack Notifications -->
+  <div class="toast-stack" id="toastContainer"></div>

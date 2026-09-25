@@ -1,0 +1,77 @@
+services:
+  # ============================================================
+  # Ứng dụng TaskMaster Pro (Node.js + Express + EJS)
+  # ============================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: taskmaster-pro-app
+    container_name: taskmaster_app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5000}:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      # Database - kết nối tới service "db" trong cùng network Docker (KHÔNG dùng localhost)
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ${DOCKER_DB_USER}
+      DB_PASSWORD: ${DOCKER_DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DATABASE_URL: mysql://${DOCKER_DB_USER}:${DOCKER_DB_PASSWORD}@db:3306/${DB_NAME}
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      # Email (Nodemailer)
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      # Cron nhắc việc
+      REMINDER_CRON_SCHEDULE: ${REMINDER_CRON_SCHEDULE:-0 8 * * *}
+      # Google Gemini AI
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL}
+    volumes:
+      # Giữ lại file đính kèm người dùng tải lên khi container bị xóa/tạo lại
+      - ./uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - taskmaster_net
+
+  # ============================================================
+  # Database MySQL 8.4 (khớp phiên bản đang dùng ở môi trường dev)
+  # ============================================================
+  db:
+    image: mysql:8.4
+    container_name: taskmaster_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DOCKER_DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DOCKER_DB_USER}
+      MYSQL_PASSWORD: ${DOCKER_DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DOCKER_DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - taskmaster_net
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  taskmaster_net:
+    driver: bridge

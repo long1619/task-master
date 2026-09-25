@@ -1,0 +1,184 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum Status {
+  pending
+  in_progress
+  completed
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String         @db.VarChar(100)
+  email         String         @unique @db.VarChar(191)
+  password      String         @db.VarChar(255)
+  role          Role           @default(user)
+  isLocked      Boolean        @default(false) @map("is_locked")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  todos                Todo[]             @relation("CreatedTodos")
+  assignedTodos        Todo[]             @relation("AssignedTodos")
+  refreshTokens        RefreshToken[]
+  ownedWorkspaces      Workspace[]        @relation("OwnedWorkspaces")
+  workspaceMemberships WorkspaceMember[]
+  comments             TaskComment[]
+  activities           ActivityLog[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id          Int               @id @default(autoincrement())
+  name        String            @db.VarChar(100)
+  description String?           @db.Text
+  ownerId     Int               @map("owner_id")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  owner       User              @relation("OwnedWorkspaces", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     WorkspaceMember[]
+  todos       Todo[]
+
+  @@index([ownerId])
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          Int       @id @default(autoincrement())
+  workspaceId Int       @map("workspace_id")
+  userId      Int       @map("user_id")
+  role        String    @default("member") @db.VarChar(20) // "owner", "admin", "member"
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+  @@map("workspace_members")
+}
+
+model Todo {
+  id          Int          @id @default(autoincrement())
+  title       String       @db.VarChar(255)
+  description String?      @db.Text
+  status      Status       @default(pending)
+  priority    Priority     @default(medium)
+  dueDate     DateTime?    @map("due_date")
+  tags        Json?
+  userId      Int          @map("user_id")
+  workspaceId Int?         @map("workspace_id")
+  assigneeId  Int?         @map("assignee_id")
+  deletedAt   DateTime?    @map("deleted_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user        User          @relation("CreatedTodos", fields: [userId], references: [id], onDelete: Cascade)
+  assignee    User?         @relation("AssignedTodos", fields: [assigneeId], references: [id], onDelete: SetNull)
+  workspace   Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  attachments Attachment[]
+  subtasks    Subtask[]
+  comments    TaskComment[]
+  activities  ActivityLog[]
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@index([workspaceId])
+  @@index([assigneeId])
+  @@map("todos")
+}
+
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  todoId    Int      @map("todo_id")
+  fileName  String   @map("file_name") @db.VarChar(255)
+  filePath  String   @map("file_path") @db.VarChar(500)
+  fileSize  Int      @map("file_size")
+  mimeType  String   @map("mime_type") @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  todo      Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+
+  @@index([todoId])
+  @@map("todo_attachments")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(500)
+  userId    Int      @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  userAgent String?  @map("user_agent") @db.VarChar(255)
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Subtask {
+  id        Int      @id @default(autoincrement())
+  todoId    Int      @map("todo_id")
+  title     String   @db.VarChar(255)
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  todo      Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+
+  @@index([todoId])
+  @@map("todo_subtasks")
+}
+
+model TaskComment {
+  id        Int      @id @default(autoincrement())
+  todoId    Int      @map("todo_id")
+  userId    Int      @map("user_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  todo      Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([todoId])
+  @@index([userId])
+  @@map("task_comments")
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  todoId      Int      @map("todo_id")
+  userId      Int      @map("user_id")
+  action      String   @db.VarChar(50)
+  description String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  todo        Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([todoId])
+  @@index([userId])
+  @@map("activity_logs")
+}

@@ -1,0 +1,23 @@
+node_modules
+npm-debug.log*
+
+# Bí mật - KHÔNG bao giờ đưa vào image, container tự nhận qua docker-compose env
+.env
+.env.*
+!.env.example
+
+# File tải lên của người dùng - sẽ được mount volume riêng, không cần bake vào image
+uploads/*
+!uploads/.gitkeep
+
+# Git & tài liệu - không cần thiết cho runtime
+.git
+.gitignore
+*.md
+
+# File phụ, không dùng trong runtime
+public/js/app copy.js
+
+# Editor/OS junk
+.vscode
+.DS_Store
